@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        function allStudent() {
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:8080/students",
+                success: function (student) {
+                    console.log(student)
+                    displayStudent(student)
+                }
+            })
+        }
+        function displayStudent(student) {
+            let res = "";
+            res += `<table border="1" cellpadding="5">
+                <tr>
+                    <th>Name</th>
+                    <th>Date of Birth </th>
+                    <th>Address</th>
+                    <th>Phone Number</th>
+                    <th>Email</th>
+                    <th>Classroom</th>
+                    <th colspan="3">Action</th>
+                </tr>`
+            for (let i = 0; i < student.length; i++) {
+                res += `<tr>
+                    <td> ${student[i].name}</td>
+                    <td> ${student[i].dateOfBirth}</td>
+                    <td> ${student[i].address}</td>
+                    <td> ${student[i].phoneNumber}</td>
+                    <td> ${student[i].email}</td>
+                    <td> ${student[i].classroom.name}</td>
+                    <td><button onclick="viewStudent(${student[i].id})">View</button></td>
+                    <td><button onclick="showFormEditStudent(${student[i].id})">Edit</button></td>
+                    <td><button onclick="deleteStudent(${student[i].id})">Delete</button></td>
+                        </tr>`
+            }
+            res += `</table>`
+            document.getElementById("display").innerHTML = res;
+        }
+        function viewStudent(id){
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:8080/students/" + id,
+                success: function (student) {
+                    console.log(student)
+                    let view = `<table cellpadding="5">
+                                    <tr>
+                                        <th>name: </th>
+                                        <td>${student.name}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>dateOfBirth: </th>
+                                        <td>${student.dateOfBirth}</td>
+                                    </tr>
+                                      <tr>
+                                        <th>address: </th>
+                                        <td>${student.address}</td>
+                                    </tr>
+                                      <tr>
+                                        <th>phoneNumber: </th>
+                                        <td>${student.phoneNumber}</td>
+                                    </tr>
+                                      <tr>
+                                        <th>email: </th>
+                                        <td>${student.email}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>mode: </th>
+                                        <td>${student.classroom.name}</td>
+                                    </tr>
+                                </table>`;
+                    console.log(view)
+                    view += `<button onclick="allStudent()">trang chủ</button>`
+
+                    document.getElementById("display").innerHTML = view;
+                }
+            })
+        }
+        function showFormEditStudent(id) {
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:8080/students/" + id,
+                success: function (student) {
+                    console.log(student)
+                    $.ajax({
+                        type: "GET",
+                        url: "http://localhost:8080/classrooms",
+                        success: function (classroom) {
+                            console.log(classroom)
+                            let form =
+                                "<p>name</p>" + `<input type="text" id="name" value="${student.name}">\n` + "<br>" +
+                                `<input type="hidden" id="dateOfBirth" value="${student.dateOfBirth}">\n`+
+                                "<p>address</p>" + `<input type="text" id="address" value="${student.address}">\n` + "<br>" +
+                                "<p>phoneNumber</p>" + `<input type="text" id="phoneNumber" value="${student.phoneNumber}">\n` + "<br>" +
+                                "<p>email</p>" + `<input type="text" id="email" value="${student.email}">\n` + "<br>" +
+                                "<p>classroom</p>" + `<select  id="classroom">
+                                 <option value="${student.classroom.id}"> ${student.classroom.name}</option>`
+                            for (let i = 0; i < classroom.length; i++) {
+                                form += `<option value="${classroom[i].id}">${classroom[i].name}</option>`
+                            }
+                            form += `</select>`
+                                + `<button onclick="updateStudent(${student.id})">Thay đổi</button>`
+                            console.log(form)
+                            document.getElementById("display").innerHTML = form;
+                        }
+                    })
+                }
+            })
+        }
+
+
+        function updateStudent(id) {
+            let name = document.getElementById("name").value;
+            let dateOfBirth = document.getElementById("dateOfBirth").value;
+            let address = document.getElementById("address").value;
+            let phoneNumber = document.getElementById("phoneNumber").value;
+            let email = document.getElementById("email").value;
+            let classroom = document.getElementById("classroom").value;
+            let student = {
+                id: id,
+                name: name,
+                dateOfBirth: dateOfBirth,
+                address:address,
+                phoneNumber:phoneNumber,
+                email:email,
+                classroom: {
+                    id: classroom
+                }
+            }
+            console.log(student)
+            $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                type: "PUT",
+                url: "http://localhost:8080/students/" + id,
+                data: JSON.stringify(student),
+                success: function (student){
+                    allStudent(student)
+                    alert("xong")
+                },
+                error: function (error) {
+                }
+            })
+        }
+
+        function formCreate() {
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:8080/classrooms",
+                success: function (classroom) {
+                    console.log(classroom);
+                    let form = `<table cellpadding="5">
+                            <tr>
+                                <th>name: </th>
+                                <td><input type="text" id="name"></td>
+                            </tr>
+
+                            <tr>
+                                <th>dateOfBirth: </th>
+                                <td><input type="datetime-local" id="dateOfBirth"></td>
+                            </tr>
+
+                            <tr>
+                                <th>address: </th>
+                                <td><input type="text" id="address"></td>
+                            </tr>
+
+                            <tr>
+                                <th>phoneNumber: </th>
+                                <td><input type="text" id="phoneNumber"></td>
+                            </tr>
+
+                            <tr>
+                                <th>email: </th>
+                                <td><input type="text" id="email"></td>
+                            </tr>
+                            <tr>
+                                <th>classroom: </th>
+                                <td>
+                                    <select id="classroom">`
+                    for (let i = 0; i < classroom.length; i++) {
+                        form += `<option value="${classroom[i].id}">${classroom[i].name}</option>`
+                    }
+                    form += `</select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th></th>
+                                <td><button onclick="saveStudent()">Save</button></td>
+                            </tr>
+                        </table>`;
+                    document.getElementById("display").innerHTML = form;
+                }
+            })
+        }
+
+        function saveStudent() {
+            let student = {
+                "name": document.getElementById("name").value,
+                "dateOfBirth": document.getElementById("dateOfBirth").value,
+                "address": document.getElementById("address").value,
+                "phoneNumber": document.getElementById("phoneNumber").value,
+                "email": document.getElementById("email").value,
+                "classroom": {
+                    "id": document.getElementById("classroom").value,
+                }
+            }
+            console.log(student)
+            $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                type: "POST",
+                url: "http://localhost:8080/students",
+                data: JSON.stringify(student),
+                success: function () {
+                    alert("Thêm Thành Công")
+                    allStudent();
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            })
+        }
+        function deleteStudent(id) {
+            if (confirm("Are you sure")) {
+                $.ajax({
+                    type: "DELETE",
+                    url: "http://localhost:8080/students/" + id,
+                    success: function (student){
+                        allStudent(student)
+                    },
+                    error: function (error) {
+                    }
+                })
+            }
+        }
+
+    </script>
+
+</head>
+<body onload="allStudent()">
+<button onclick="formCreate()">add</button>
+<div id="display"></div>
+
+</body>
+</html>
